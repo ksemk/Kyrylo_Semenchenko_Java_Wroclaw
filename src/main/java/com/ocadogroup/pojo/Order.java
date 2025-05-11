@@ -8,7 +8,6 @@ public class Order {
     Set<String> promotions;
     Integer currentDiscount;
     String paymentMethod;
-    Integer cardPayedPart;
     boolean isPayedMixed;
 
     public Order(String id, Double value, Set<String> promotions) {
@@ -17,7 +16,6 @@ public class Order {
         this.promotions = promotions;
         this.currentDiscount = 0;
         this.paymentMethod = null;
-        this.cardPayedPart = 0;
         this.isPayedMixed = false;
     }
 
@@ -45,14 +43,6 @@ public class Order {
 
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
-    }
-
-    public Integer getCardPayedPart() {
-        return cardPayedPart;
-    }
-
-    public void setCardPayedPart(Integer cardPayedPart) {
-        this.cardPayedPart = cardPayedPart;
     }
 
     public String getId() {

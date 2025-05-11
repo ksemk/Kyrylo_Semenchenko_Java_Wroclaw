@@ -45,7 +45,6 @@ public class PayWithMixedMethods {
                     if ((0.9 * order.getValue() <= paymentMethod.getLimit()) && !order.getIsPayedMixed()) {
                         revertPreviousLimit(order);
                         order.setPaymentMethod(paymentMethod.getId());
-                        order.setCardPayedPart(90);
                         order.setCurrentDiscount(10);
 
 
