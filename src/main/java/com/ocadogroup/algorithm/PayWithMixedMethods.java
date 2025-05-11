@@ -41,8 +41,13 @@ public class PayWithMixedMethods {
                     if (paymentMethod.getId().equals(PaymentMethod.getBonusId())) {
                         continue;
                     }
-                    // 90% is paid with card, other 10% with bonus to get 10% discount
-                    if ((0.9 * order.getValue() <= paymentMethod.getLimit()) && !order.getIsPayedMixed()) {
+                    // According to example:
+                    // minimalBonusAmountNeededForDiscount = initialPrice * 10%
+                    // finalPricePayedWithCard = initialPrice * 90% - minimalBonusAmountNeededForDiscount
+                    // finalPricePayedWithCard = initialPrice * 90% - initialPrice * 10% = 80% * initialPrice
+
+                    // 80% is paid with card, 10% with bonus to get 10% discount
+                    if ((0.8 * order.getValue() <= paymentMethod.getLimit()) && !order.getIsPayedMixed()) {
                         revertPreviousLimit(order);
                         order.setPaymentMethod(paymentMethod.getId());
                         order.setCurrentDiscount(10);
@@ -113,6 +118,8 @@ public class PayWithMixedMethods {
             if (order.getPaymentMethod() != null && !order.getIsPayedMixed()) {
                 for (PaymentMethod paymentMethod : paymentMethods) {
                     if (paymentMethod.getId().equals(order.getPaymentMethod())) {
+                        // newLimit = oldLimit - (value - value * discount)
+                        // oldLimit = newLimit + value(1 - discount)
                         paymentMethod.setLimit(paymentMethod.getLimit() + (100 - order.getCurrentDiscount()) * order.getValue() * 0.01);
                     }
                 }
