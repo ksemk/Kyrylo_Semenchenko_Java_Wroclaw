@@ -19,37 +19,40 @@ public class PayWithCard {
     public HashMap<String, List<Order>> generateBestGrossDiscountListsById() {
 
         HashMap<String, List<Order>> bestGrossDiscountListsById = new HashMap<>();
-        // for each payment method via card
-        for (PaymentMethod paymentMethod : paymentMethods) {
-            if (paymentMethod.getId().equals("PUNKTY")) {
-                continue; // skip bonuses
-            }
-            // find supported cards
-            List<Order> ordersListWithCurrentId = ordersWithCurrentId(paymentMethod.getId());
-            if (ordersListWithCurrentId == null) {
-                continue; // skip unsupported card ids
-            }
-            for (Order order : ordersListWithCurrentId) {
+        try {
+            // for each payment method via card
+            for (PaymentMethod paymentMethod : paymentMethods) {
+                if (paymentMethod.getId().equals(PaymentMethod.getBonusId())) {
+                    continue; // skip bonuses
+                }
+                // find supported cards
+                List<Order> ordersListWithCurrentId = ordersWithCurrentId(paymentMethod.getId());
+                if (ordersListWithCurrentId == null) {
+                    continue; // skip unsupported card ids
+                }
                 // remove order from candidate list if its discount is less than bonus' discount or previous discount (if those exist)
-                if (order.getCurrentDiscount() != null && order.getCurrentDiscount() < paymentMethod.getDiscount()) {
-                    ordersListWithCurrentId.remove(order);
-                }
-            }
-            // for supported card id
-            List<Order> bestGrossDiscount = BackpackProblemSolver.selectOrdersToPay(ordersListWithCurrentId, paymentMethod.getLimit());
-            double limitMinus = 0;
-            int discountForThisMethod = paymentMethod.getDiscount();
-            for (Order order : orders) {
-                if (bestGrossDiscount.contains(order)) {
-                    revertPreviousLimit(order);
+                ordersListWithCurrentId.removeIf(order -> order.getCurrentDiscount() != null && order.getCurrentDiscount() < paymentMethod.getDiscount());
+                // for supported card id
+                List<Order> bestGrossDiscount = BackpackProblemSolver.selectOrdersToPay(ordersListWithCurrentId, paymentMethod.getLimit());
+                double limitMinus = 0;
+                int discountForThisMethod = paymentMethod.getDiscount();
+                for (Order order : orders) {
+                    if (bestGrossDiscount.contains(order)) {
+                        revertPreviousLimit(order);
 
-                    order.setCurrentDiscount(paymentMethod.getDiscount());
-                    order.setPaymentMethod(paymentMethod.getId());
-                    limitMinus -= order.getValue() * discountForThisMethod * 0.01;
+                        order.setCurrentDiscount(paymentMethod.getDiscount());
+                        order.setPaymentMethod(paymentMethod.getId());
+                        limitMinus += order.getValue() * discountForThisMethod * 0.01;
+                    }
                 }
+                bestGrossDiscountListsById.put(paymentMethod.getId(), bestGrossDiscount);
+                paymentMethod.setLimit(paymentMethod.getLimit() - limitMinus);
             }
-            bestGrossDiscountListsById.put(paymentMethod.getId(), bestGrossDiscount);
-            paymentMethod.setLimit(paymentMethod.getLimit() + limitMinus);
+        }
+        catch (Exception e){
+            System.err.println("Error in generateBestGrossDiscountListsById: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
         return bestGrossDiscountListsById;
     }
@@ -77,5 +80,3 @@ public class PayWithCard {
         return output;
     }
 }
-
-

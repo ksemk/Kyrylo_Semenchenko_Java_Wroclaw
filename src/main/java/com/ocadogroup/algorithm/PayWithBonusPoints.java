@@ -21,7 +21,7 @@ public class PayWithBonusPoints {
 
     public Integer findDiscountFullRate(List<PaymentMethod> paymentMethods) {
         for (PaymentMethod paymentMethod : paymentMethods) {
-            if (paymentMethod.getId().equals("PUNKTY")) {
+            if (paymentMethod.getId().equals(PaymentMethod.getBonusId())) {
                 return paymentMethod.getDiscount();
             }
         }
@@ -30,61 +30,51 @@ public class PayWithBonusPoints {
 
     public Double findBonusLimit(List<PaymentMethod> paymentMethods) {
         for (PaymentMethod paymentMethod : paymentMethods) {
-            if (paymentMethod.getId().equals("PUNKTY")) {
+            if (paymentMethod.getId().equals(PaymentMethod.getBonusId())) {
                 return paymentMethod.getLimit();
             }
         }
         return null;
     }
 
-    public String FindMostExpensiveOrder(List<Order> orders, Double limit) {
-        Order mostExpensive = null;
-        double highestPrice = 0.0;
-        double currentOrderValue;
-        for (Order order : orders) {
-            currentOrderValue = order.getValue();
-            if (order.getPromotions() == null) {
-                continue;
-            }
-            if (currentOrderValue > highestPrice && currentOrderValue <= limit) {
-                highestPrice = currentOrderValue;
-                mostExpensive = order;
-            }
-        }
-        if (mostExpensive == null) {
-            throw new NullPointerException("FindMostExpensiveOrder failed");
-        } else {
-            return mostExpensive.getId();
-        }
-    }
-
     public List<Order> generateBestGrossDiscountList() {
-        List<Order> bestGrossDiscount = BackpackProblemSolver.selectOrdersToPay(orders, limit);
-        for (Order order : orders) {
-            if (bestGrossDiscount.contains(order)) {
-                order.setCurrentDiscount(discountFullRate);
-                order.setPaymentMethod("PUNKTY");
+            List<Order> bestGrossDiscount = BackpackProblemSolver.selectOrdersToPay(orders, limit);
+        try {
+            for (Order order : orders) {
+                if (bestGrossDiscount.contains(order)) {
+                    order.setCurrentDiscount(discountFullRate);
+                    order.setPaymentMethod(PaymentMethod.getBonusId());
+                }
             }
+            changeLimit();
         }
-        changeLimit();
+        catch (Exception e){
+            System.err.println("Error in generateBestGrossDiscountList: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
         return bestGrossDiscount;
     }
 
     private void changeLimit() {
-        double limitMinus = 0;
-        for (Order order : orders) {
+        try {
+            double limitMinus = 0;
+            for (Order order : orders) {
 
-            if (order.getPaymentMethod() != null && order.getPaymentMethod().equals("PUNKTY")) {
-                limitMinus -= order.getValue() * discountFullRate * 0.01;
+                if (order.getPaymentMethod() != null && order.getPaymentMethod().equals(PaymentMethod.getBonusId())) {
+                    limitMinus -= order.getValue() * discountFullRate * 0.01;
+                }
+                limit += limitMinus;
             }
-            System.out.println(limit);
-            limit += limitMinus;
+            for (PaymentMethod paymentMethod : paymentMethods) {
+                if (paymentMethod.getId().equals(PaymentMethod.getBonusId())) {
+                    paymentMethod.setLimit(paymentMethod.getLimit() + limitMinus);
+                }
+            }
         }
-        for (PaymentMethod paymentMethod : paymentMethods) {
-            if (paymentMethod.getId().equals("PUNKTY")) {
-                paymentMethod.setLimit(paymentMethod.getLimit() + limitMinus);
-            }
+        catch(Exception e){
+            System.err.println("Error in changeLimit: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
-

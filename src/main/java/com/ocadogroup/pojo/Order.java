@@ -21,6 +21,8 @@ public class Order {
         this.isPayedMixed = false;
     }
 
+
+    // Getters and Setters
     public void setIsPayedMixed(boolean isPayedMixed) {
         this.isPayedMixed = isPayedMixed;
     }

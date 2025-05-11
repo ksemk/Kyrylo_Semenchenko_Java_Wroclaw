@@ -6,10 +6,10 @@ import com.ocadogroup.algorithm.PayWithMixedMethods;
 import com.ocadogroup.pojo.Order;
 import com.ocadogroup.pojo.PaymentMethod;
 import com.ocadogroup.utils.JsonUtils;
+import com.ocadogroup.utils.OutputUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 
 public class Application {
@@ -20,29 +20,23 @@ public class Application {
         List<Order> orders = JsonUtils.parseOrders(ordersPath);
         List<PaymentMethod> paymentMethods = JsonUtils.parsePaymentMethods(paymentMethodsPath);
 
+        // First try to pay full price with bonuses, as it possibly has better discounts
         PayWithBonusPoints payWithBonusPoints = new PayWithBonusPoints(orders, paymentMethods);
-        List<Order> bonuses = payWithBonusPoints.generateBestGrossDiscountList();
-        for (Order order : bonuses) {
-            System.out.println("Discount with bonus:" + order.getCurrentDiscount());
-        }
+        payWithBonusPoints.generateBestGrossDiscountList();
+
+        // Secondly try to pay full price with traditional payment method, as possibly not all orders were payed with bonuses,
+        // or partner company offers better discount than bonus discount
         PayWithCard payWithCard = new PayWithCard(orders, paymentMethods);
-        HashMap<String, List<Order>> cards = payWithCard.generateBestGrossDiscountListsById();
-//        for (List<Order> value : cards.values()) {
-//            for (Order order : value) {
-//                for (PaymentMethod paymentMethod : paymentMethods) {
-//                    if (paymentMethod.getId().equals(order.getPaymentMethod())) {
-//                        System.out.println(order.getPaymentMethod() + " " + paymentMethod.getLimit());
-//                    }
-//                }
-//            }
-//        }
-        for (PaymentMethod paymentMethod : paymentMethods){
-            System.out.println(paymentMethod.getId() + " " + paymentMethod.getLimit());
-        }
+        payWithCard.generateBestGrossDiscountListsById();
+
+        // Thirdly pay the remain orders using mixed methods, but try to spilt bonuses, so they would cover at least 10% of order value,
+        // gaining better discount
         PayWithMixedMethods payWithMixedMethods = new PayWithMixedMethods(orders, paymentMethods);
         payWithMixedMethods.GenerateBestDiscountsForMixedPayment();
-        for (PaymentMethod paymentMethod : paymentMethods){
-            System.out.println(paymentMethod.getId() + " " + paymentMethod.getLimit());
-        }
+
+        // And finally, if there is no bank account, pay partly with bonuses
+        payWithMixedMethods.remainPaymentsWithNoDiscounts();
+        OutputUtils.printResultToStdStream(paymentMethods);
+
     }
 }
