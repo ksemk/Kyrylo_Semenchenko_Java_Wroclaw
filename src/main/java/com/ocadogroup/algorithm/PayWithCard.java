@@ -42,7 +42,7 @@ public class PayWithCard {
 
                         order.setCurrentDiscount(paymentMethod.getDiscount());
                         order.setPaymentMethod(paymentMethod.getId());
-                        limitMinus += order.getValue() * discountForThisMethod * 0.01;
+                        limitMinus += order.getValue() * (100 - discountForThisMethod) * 0.01;
                     }
                 }
                 bestGrossDiscountListsById.put(paymentMethod.getId(), bestGrossDiscount);
@@ -58,12 +58,19 @@ public class PayWithCard {
     }
 
     private void revertPreviousLimit(Order order) {
-        if (order.getPaymentMethod() != null) {
-            for (PaymentMethod paymentMethod1 : paymentMethods) {
-                if (paymentMethod1.getId().equals(order.getPaymentMethod())) {
-                    paymentMethod1.setLimit(paymentMethod1.getLimit() / order.getValue() / (1 - order.getCurrentDiscount() * 0.01));
+        try {
+            if (order.getPaymentMethod() != null && !order.getIsPayedMixed()) {
+                for (PaymentMethod paymentMethod : paymentMethods) {
+                    if (paymentMethod.getId().equals(order.getPaymentMethod())) {
+                        // newLimit = oldLimit - (value - value * discount)
+                        // oldLimit = newLimit + value(1 - discount)
+                        paymentMethod.setLimit(paymentMethod.getLimit() + (100 - order.getCurrentDiscount()) * order.getValue() * 0.01);
+                    }
                 }
             }
+        } catch (Exception e) {
+            System.err.println("Error in revertPreviousLimit: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

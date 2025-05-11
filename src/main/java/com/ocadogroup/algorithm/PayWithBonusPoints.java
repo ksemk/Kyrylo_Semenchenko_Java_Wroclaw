@@ -62,7 +62,7 @@ public class PayWithBonusPoints {
             for (Order order : orders) {
 
                 if (order.getPaymentMethod() != null && order.getPaymentMethod().equals(PaymentMethod.getBonusId())) {
-                    limitMinus -= order.getValue() * discountFullRate * 0.01;
+                    limitMinus -= order.getValue() * (100 - discountFullRate) * 0.01;
                 }
                 limit += limitMinus;
             }

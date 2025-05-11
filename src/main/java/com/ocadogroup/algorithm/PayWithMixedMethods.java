@@ -53,11 +53,8 @@ public class PayWithMixedMethods {
                         order.setCurrentDiscount(10);
 
 
-                        double bonusPayment = 0.1 * order.getValue();
-                        double cardPayment = 0.9 * order.getValue() - bonusPayment;
-
-                        paymentMethod.setLimit(paymentMethod.getLimit() - cardPayment);
-                        getBonus().setLimit(getBonus().getLimit() - bonusPayment);
+                        paymentMethod.setLimit(paymentMethod.getLimit() - 0.8 * order.getValue());
+                        getBonus().setLimit(getBonus().getLimit() - 0.1 * order.getValue());
                         order.setIsPayedMixed(true);
                         output.put(paymentMethod.getId(), order);
                         break;
