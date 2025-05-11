@@ -38,7 +38,7 @@ public class PayWithBonusPoints {
     }
 
     public List<Order> generateBestGrossDiscountList() {
-            List<Order> bestGrossDiscount = BackpackProblemSolver.selectOrdersToPay(orders, limit);
+        List<Order> bestGrossDiscount = BackpackProblemSolver.selectOrdersToPay(orders, limit);
         try {
             for (Order order : orders) {
                 if (bestGrossDiscount.contains(order)) {
@@ -47,8 +47,7 @@ public class PayWithBonusPoints {
                 }
             }
             changeLimit();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             System.err.println("Error in generateBestGrossDiscountList: " + e.getMessage());
             e.printStackTrace();
             return null;
@@ -71,8 +70,7 @@ public class PayWithBonusPoints {
                     paymentMethod.setLimit(paymentMethod.getLimit() + limitMinus);
                 }
             }
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             System.err.println("Error in changeLimit: " + e.getMessage());
             e.printStackTrace();
         }

@@ -29,6 +29,7 @@ public class Application {
         PayWithCard payWithCard = new PayWithCard(orders, paymentMethods);
         payWithCard.generateBestGrossDiscountListsById();
 
+
         // Thirdly pay the remain orders using mixed methods, but try to spilt bonuses, so they would cover at least 10% of order value,
         // gaining better discount
         PayWithMixedMethods payWithMixedMethods = new PayWithMixedMethods(orders, paymentMethods);
@@ -37,6 +38,5 @@ public class Application {
         // And finally, if there is no bank account, pay partly with bonuses
         payWithMixedMethods.remainPaymentsWithNoDiscounts();
         OutputUtils.printResultToStdStream(paymentMethods);
-
     }
 }
